@@ -35,6 +35,54 @@ BookNode* insertBookNode(BookNode* node, int id, const char* title) {
     return node;
 }
 
+// Função para encontrar o sucessor in-order (o menor nó na subárvore à direita)
+BookNode* findMin(BookNode* node) {
+    while (node->left != NULL) {
+        node = node->left;
+    }
+    return node;
+}
+
+// Função para remover um livro da árvore
+BookNode* removeBookNode(BookNode* root, int id) {
+    if (root == NULL) {
+        return NULL;
+    }
+
+    // Procurando o nó a ser removido
+    if (id < root->id) {
+        root->left = removeBookNode(root->left, id);
+    } else if (id > root->id) {
+        root->right = removeBookNode(root->right, id);
+    } else {
+        // Caso 1: O nó é uma folha (sem filhos)
+        if (root->left == NULL && root->right == NULL) {
+            free(root);
+            return NULL;
+        }
+        // Caso 2: O nó tem apenas um filho
+        else if (root->left == NULL) {
+            BookNode* temp = root->right;
+            free(root);
+            return temp;
+        }
+        else if (root->right == NULL) {
+            BookNode* temp = root->left;
+            free(root);
+            return temp;
+        }
+        // Caso 3: O nó tem dois filhos
+        else {
+            BookNode* temp = findMin(root->right);  // Encontra o sucessor in-order
+            root->id = temp->id;                    // Substitui o ID pelo do sucessor
+            strcpy(root->title, temp->title);       // Substitui o título
+            root->right = removeBookNode(root->right, temp->id);  // Remove o sucessor
+        }
+    }
+
+    return root;
+}
+
 // Função para buscar um livro pelo ID
 BookNode* searchBookNode(BookNode* node, int id) {
     if (node == NULL || node->id == id) {
@@ -74,8 +122,16 @@ int main() {
     printf("Lista de Livros em Ordem de ID:\n");
     listBooks(root);
 
+    // Removendo um livro
+    printf("\nRemovendo o livro com ID 40...\n");
+    root = removeBookNode(root, 40);
+
+    // Listando os livros após a remoção
+    printf("\nLista de Livros após remoção:\n");
+    listBooks(root);
+
     // Buscando um livro específico
-    int searchId = 20;
+    int searchId = 40;
     BookNode* foundBook = searchBookNode(root, searchId);
     if (foundBook) {
         printf("\nLivro encontrado: ID: %d, Título: %s\n", foundBook->id, foundBook->title);
